@@ -35,7 +35,7 @@
             // Act 
             var createdResource = factory.CreateLectureResource(validType, validResourceName, validResourceUrl);
             // Assert
-            Assert.IsInstanceOf(expectedType, createdResource);
+            Assert.IsTrue(expectedType.Equals(createdResource.GetType()));
         }
 
         [TestCase("video")]
