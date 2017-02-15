@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
 
-namespace IntergalacticTravel.Tests.ResoursecFactory
+namespace IntergalacticTravel.Tests.ResourcesFactoryTests
 {
     [TestFixture]
     public class GetResources_Should

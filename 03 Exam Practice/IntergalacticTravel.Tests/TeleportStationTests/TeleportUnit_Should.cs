@@ -352,7 +352,7 @@ namespace IntergalacticTravel.Tests.TeleportStationTests
             var stationMapStub = new List<IPath> { pathStub.Object };
 
             var teleport = new TeleportStation(stationOwnerStub.Object, stationMapStub, stationLocationStub.Object);
-            
+
             var unitToTeleportStub = new Mock<IUnit>();
             unitToTeleportStub.Setup(u => u.CurrentLocation).Returns(stationLocationStub.Object);
             unitToTeleportStub.Setup(u => u.CanPay(It.IsAny<IResources>())).Returns(false);
@@ -383,7 +383,7 @@ namespace IntergalacticTravel.Tests.TeleportStationTests
             var stationMapStub = new List<IPath> { pathStub.Object };
 
             var teleport = new TeleportStation(stationOwnerStub.Object, stationMapStub, stationLocationStub.Object);
-            
+
             var unitToTeleportStub = new Mock<IUnit>();
             unitToTeleportStub.Setup(u => u.CurrentLocation).Returns(stationLocationStub.Object);
             unitToTeleportStub.Setup(u => u.CanPay(It.IsAny<IResources>())).Returns(false);
@@ -423,7 +423,7 @@ namespace IntergalacticTravel.Tests.TeleportStationTests
             var stationMapStub = new List<IPath> { pathStub.Object };
 
             var teleport = new TeleportStation(stationOwnerStub.Object, stationMapStub, stationLocationStub.Object);
-            
+
             unitToTeleportStub.Setup(u => u.CurrentLocation).Returns(stationLocationStub.Object);
             unitToTeleportStub.Setup(u => u.CanPay(It.IsAny<IResources>())).Returns(true);
             unitToTeleportStub.Setup(u => u.Pay(It.IsAny<IResources>())).Returns(new Mock<IResources>().Object);
@@ -506,14 +506,121 @@ namespace IntergalacticTravel.Tests.TeleportStationTests
 
             var teleport = new TeleportStation(stationOwnerStub.Object, stationMapStub, stationLocationStub.Object);
 
-            unitToTeleportMock.SetupProperty(u => u.CurrentLocation);
-            unitToTeleportMock.Object.CurrentLocation = stationLocationStub.Object;
+            unitToTeleportMock.SetupProperty(u => u.CurrentLocation, stationLocationStub.Object);
             unitToTeleportMock.Setup(u => u.CanPay(It.IsAny<IResources>())).Returns(true);
             unitToTeleportMock.Setup(u => u.Pay(It.IsAny<IResources>())).Returns(new Mock<IResources>().Object);
             // Act
             teleport.TeleportUnit(unitToTeleportMock.Object, targetLocationStub.Object);
             // Assert
-            Assert.AreEqual(targetLocationStub.Object, unitToTeleportMock.Object.CurrentLocation);
+            unitToTeleportMock.VerifySet(u => u.CurrentLocation = targetLocationStub.Object);
+        }
+
+        [Test]
+        public void SetUnitToTeleportPreviousLocationToCurrentLocation_WhenAllValidationsPassSuccessfullyAndUnitIsBeingTeleported()
+        {
+            // Arrange
+            var stationOwnerStub = new Mock<IBusinessOwner>();
+            var unitToTeleportMock = new Mock<IUnit>();
+
+            var stationLocationStub = new Mock<ILocation>();
+            stationLocationStub.SetupGet(l => l.Planet.Galaxy.Name).Returns("Milky way");
+            stationLocationStub.SetupGet(l => l.Planet.Name).Returns("Earth");
+            stationLocationStub.SetupGet(l => l.Planet.Units).Returns(new List<IUnit> { unitToTeleportMock.Object });
+
+            var targetLocationStub = new Mock<ILocation>();
+            targetLocationStub.SetupGet(d => d.Planet.Galaxy.Name).Returns("Andromeda");
+            targetLocationStub.SetupGet(d => d.Planet.Name).Returns("Kobe");
+
+            var pathStub = new Mock<IPath>();
+            pathStub.SetupGet(p => p.TargetLocation.Planet.Galaxy.Name).Returns("Andromeda");
+            pathStub.SetupGet(p => p.TargetLocation.Planet.Name).Returns("Kobe");
+            pathStub.SetupGet(p => p.TargetLocation.Planet.Units).Returns(new List<IUnit>());
+            pathStub.SetupGet(p => p.Cost).Returns(new Mock<IResources>().Object);
+
+            var stationMapStub = new List<IPath> { pathStub.Object };
+
+            var teleport = new TeleportStation(stationOwnerStub.Object, stationMapStub, stationLocationStub.Object);
+
+            unitToTeleportMock.SetupProperty(u => u.CurrentLocation, stationLocationStub.Object);
+            unitToTeleportMock.SetupProperty(u => u.PreviousLocation);
+            unitToTeleportMock.Setup(u => u.CanPay(It.IsAny<IResources>())).Returns(true);
+            unitToTeleportMock.Setup(u => u.Pay(It.IsAny<IResources>())).Returns(new Mock<IResources>().Object);
+            // Act
+            teleport.TeleportUnit(unitToTeleportMock.Object, targetLocationStub.Object);
+            // Assert
+            unitToTeleportMock.VerifySet(u => u.PreviousLocation = stationLocationStub.Object);
+        }
+
+        [Test]
+        public void AddUnitToTeleportToListOfUnitsOfTargetLocation_WhenAllValidationsPassSuccessfullyAndUnitIsBeingTeleported()
+        {
+            // Arrange
+            var stationOwnerStub = new Mock<IBusinessOwner>();
+            var unitToTeleportStub = new Mock<IUnit>();
+
+            var stationLocationStub = new Mock<ILocation>();
+            stationLocationStub.SetupGet(l => l.Planet.Galaxy.Name).Returns("Milky way");
+            stationLocationStub.SetupGet(l => l.Planet.Name).Returns("Earth");
+            stationLocationStub.Setup(l => l.Planet.Units).Returns(new List<IUnit> { unitToTeleportStub.Object });
+
+            var targetLocationStub = new Mock<ILocation>();
+            targetLocationStub.SetupGet(d => d.Planet.Galaxy.Name).Returns("Andromeda");
+            targetLocationStub.SetupGet(d => d.Planet.Name).Returns("Kobe");
+
+            var pathMock = new Mock<IPath>();
+            pathMock.SetupGet(p => p.TargetLocation.Planet.Galaxy.Name).Returns("Andromeda");
+            pathMock.SetupGet(p => p.TargetLocation.Planet.Name).Returns("Kobe");
+            pathMock.SetupGet(p => p.TargetLocation.Planet.Units).Returns(new List<IUnit>());
+            pathMock.SetupGet(p => p.Cost).Returns(new Mock<IResources>().Object);
+
+            var stationMapStub = new List<IPath> { pathMock.Object };
+
+            var teleport = new TeleportStation(stationOwnerStub.Object, stationMapStub, stationLocationStub.Object);
+
+            unitToTeleportStub.SetupProperty(u => u.CurrentLocation, stationLocationStub.Object);
+            unitToTeleportStub.SetupProperty(u => u.PreviousLocation);
+            unitToTeleportStub.Setup(u => u.CanPay(It.IsAny<IResources>())).Returns(true);
+            unitToTeleportStub.Setup(u => u.Pay(It.IsAny<IResources>())).Returns(new Mock<IResources>().Object);
+            // Act
+            teleport.TeleportUnit(unitToTeleportStub.Object, targetLocationStub.Object);
+            // Assert
+            CollectionAssert.Contains(pathMock.Object.TargetLocation.Planet.Units, unitToTeleportStub.Object);
+        }
+
+        [Test]
+        public void RemoveUnitToTeleportFromListOfUnitsOfCurrentLocation_WhenAllValidationsPassSuccessfullyAndUnitIsBeingTeleported()
+        {
+            // Arrange
+            var stationOwnerStub = new Mock<IBusinessOwner>();
+            var unitToTeleportStub = new Mock<IUnit>();
+
+            var stationLocationMock = new Mock<ILocation>();
+            stationLocationMock.SetupGet(l => l.Planet.Galaxy.Name).Returns("Milky way");
+            stationLocationMock.SetupGet(l => l.Planet.Name).Returns("Earth");
+            stationLocationMock.Setup(l => l.Planet.Units).Returns(new List<IUnit> { unitToTeleportStub.Object });
+
+            var targetLocationStub = new Mock<ILocation>();
+            targetLocationStub.SetupGet(d => d.Planet.Galaxy.Name).Returns("Andromeda");
+            targetLocationStub.SetupGet(d => d.Planet.Name).Returns("Kobe");
+
+            var pathStub = new Mock<IPath>();
+            pathStub.SetupGet(p => p.TargetLocation.Planet.Galaxy.Name).Returns("Andromeda");
+            pathStub.SetupGet(p => p.TargetLocation.Planet.Name).Returns("Kobe");
+            pathStub.SetupGet(p => p.TargetLocation.Planet.Units).Returns(new List<IUnit>());
+            pathStub.SetupGet(p => p.Cost).Returns(new Mock<IResources>().Object);
+
+            var stationMapStub = new List<IPath> { pathStub.Object };
+
+            var teleport = new TeleportStation(stationOwnerStub.Object, stationMapStub, stationLocationMock.Object);
+
+            unitToTeleportStub.SetupProperty(u => u.CurrentLocation, stationLocationMock.Object);
+            unitToTeleportStub.SetupProperty(u => u.PreviousLocation);
+            unitToTeleportStub.Setup(u => u.CanPay(It.IsAny<IResources>())).Returns(true);
+            unitToTeleportStub.Setup(u => u.Pay(It.IsAny<IResources>())).Returns(new Mock<IResources>().Object);
+            // Act
+            teleport.TeleportUnit(unitToTeleportStub.Object, targetLocationStub.Object);
+            // Assert
+            CollectionAssert.DoesNotContain(stationLocationMock.Object.Planet.Units, unitToTeleportStub.Object);
         }
     }
 }
