@@ -89,12 +89,40 @@ namespace IntergalacticTravel.Tests.TeleportStationTests
 
             var teleport = new TeleportStation(stationOwnerStub.Object, stationMapStub, stationLocationStub.Object);
 
+            var differentLocationStub = new Mock<ILocation>();
+            differentLocationStub.SetupGet(d => d.Planet.Galaxy.Name).Returns("Milky way");
+            differentLocationStub.SetupGet(d => d.Planet.Name).Returns("Mars");
+
             var targetLocationStub = new Mock<ILocation>();
             targetLocationStub.SetupGet(d => d.Planet.Galaxy.Name).Returns("Andromeda");
             targetLocationStub.SetupGet(d => d.Planet.Name).Returns("Kobe");
 
             var unitToTeleportStub = new Mock<IUnit>();
-            unitToTeleportStub.Setup(u => u.CurrentLocation).Returns(targetLocationStub.Object);
+            unitToTeleportStub.Setup(u => u.CurrentLocation).Returns(differentLocationStub.Object);
+            // Act and Assert
+            Assert.Throws<TeleportOutOfRangeException>(
+                () => teleport.TeleportUnit(unitToTeleportStub.Object, targetLocationStub.Object));
+        }
+
+        [Test]
+        public void ThrowTeleportOutOfRangeException_WhenUnitTriesToUseTeleportFromDifferentGalaxy()
+        {
+            // Arrange
+            var stationOwnerStub = new Mock<IBusinessOwner>();
+            var stationMapStub = new List<IPath> { new Mock<IPath>().Object };
+            var stationLocationStub = new Mock<ILocation>();
+            stationLocationStub.SetupGet(l => l.Planet.Galaxy.Name).Returns("Milky way");
+
+            var teleport = new TeleportStation(stationOwnerStub.Object, stationMapStub, stationLocationStub.Object);
+
+            var differentLocationStub = new Mock<ILocation>();
+            differentLocationStub.SetupGet(d => d.Planet.Galaxy.Name).Returns("Andromeda");
+
+            var targetLocationStub = new Mock<ILocation>();
+            targetLocationStub.SetupGet(d => d.Planet.Galaxy.Name).Returns("Andromeda");
+
+            var unitToTeleportStub = new Mock<IUnit>();
+            unitToTeleportStub.Setup(u => u.CurrentLocation).Returns(differentLocationStub.Object);
             // Act and Assert
             Assert.Throws<TeleportOutOfRangeException>(
                 () => teleport.TeleportUnit(unitToTeleportStub.Object, targetLocationStub.Object));
@@ -475,9 +503,9 @@ namespace IntergalacticTravel.Tests.TeleportStationTests
             // Act
             teleport.TeleportUnit(unitToTeleportStub.Object, targetLocationStub.Object);
             // Assert
-            Assert.AreEqual(teleport.ResoursesExposed.BronzeCoins, 20);
-            Assert.AreEqual(teleport.ResoursesExposed.SilverCoins, 20);
-            Assert.AreEqual(teleport.ResoursesExposed.GoldCoins, 20);
+            Assert.AreEqual(20, teleport.ResoursesExposed.BronzeCoins);
+            Assert.AreEqual(20, teleport.ResoursesExposed.SilverCoins);
+            Assert.AreEqual(20, teleport.ResoursesExposed.GoldCoins);
         }
 
         [Test]

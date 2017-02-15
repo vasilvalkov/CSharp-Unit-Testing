@@ -1,9 +1,7 @@
 ﻿using IntergalacticTravel.Contracts;
-using IntergalacticTravel.Tests.Fakes;
 using Moq;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 
 namespace IntergalacticTravel.Tests.UnitTests
 {
@@ -41,9 +39,9 @@ namespace IntergalacticTravel.Tests.UnitTests
             // Act
             unit.Pay(costStub.Object);
             // Assert
-            Assert.AreEqual(40 - 20, unit.Resources.BronzeCoins);
-            Assert.AreEqual(40 - 20, unit.Resources.SilverCoins);
-            Assert.AreEqual(40 - 20, unit.Resources.GoldCoins);
+            Assert.AreEqual((40 - 20), unit.Resources.BronzeCoins);
+            Assert.AreEqual((40 - 20), unit.Resources.SilverCoins);
+            Assert.AreEqual((40 - 20), unit.Resources.GoldCoins);
         }
 
         [Test]
